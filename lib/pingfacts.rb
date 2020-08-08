@@ -30,11 +30,15 @@ module Pingfacts
     end
 
     mac_addresses = {}
-    `ip neigh`.lines.each do |line|
-      r = line.split(/\s+/)
-      if r[3] == "lladdr"
-        mac_addresses[r[0].strip] = r[4].strip
+    begin
+      `ip neigh`.lines.each do |line|
+        r = line.split(/\s+/)
+        if r[3] == "lladdr"
+          mac_addresses[r[0].strip] = r[4].strip
+        end
       end
+    rescue
+      nil
     end
 
     result = []
@@ -47,7 +51,8 @@ module Pingfacts
       end
       begin
         ipresult.dnsname = Resolv.getname(ip)
-      rescue Resolv::ResolvError
+      rescue
+        nil
       end
 
       result << ipresult
