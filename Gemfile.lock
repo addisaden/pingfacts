@@ -1,7 +1,9 @@
 PATH
   remote: .
   specs:
-    pingfacts (0.1.0)
+    pingfacts (0.1.2)
+      net-ping (~> 2.0)
+      pry (~> 0.13)
 
 GEM
   remote: https://rubygems.org/

@@ -5,7 +5,9 @@ class PingfactsTest < Minitest::Test
     refute_nil ::Pingfacts::VERSION
   end
 
-  def test_it_does_something_useful
-    assert false
+  def test_it_accepts_dns_names
+    result = ::Pingfacts.scan("google.com")
+    assert_equal result.length, 1
+    assert_equal result.first.class, ::Pingfacts::PingerResult
   end
 end

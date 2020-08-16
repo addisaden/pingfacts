@@ -11,16 +11,25 @@ module Pingfacts
   end
 
   def self.scan(network, method=Net::Ping::External)
-    ip_range = IPAddr.new(network).to_range
-
     pingers = []
     onlines = []
 
-    ip_range.each do |ip|
+    begin
+      ip_range = IPAddr.new(network).to_range
+
+      ip_range.each do |ip|
+        pingers << Thread.new do
+          pinger = Net::Ping::External.new(ip.to_s)
+          if pinger.ping?
+            onlines << ip.to_s
+          end
+        end
+      end
+    rescue IPAddr::InvalidAddressError
       pingers << Thread.new do
-        pinger = Net::Ping::External.new(ip.to_s)
+        pinger = Net::Ping::External.new(network)
         if pinger.ping?
-          onlines << ip.to_s
+          onlines << network
         end
       end
     end
@@ -51,6 +60,9 @@ module Pingfacts
       end
       begin
         ipresult.dnsname = Resolv.getname(ip)
+      rescue Resolv::ResolvError
+        ipresult.ip = Resolv.getaddress(ip)
+        ipresult.dnsname = ip
       rescue
         nil
       end
