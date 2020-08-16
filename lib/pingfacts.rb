@@ -7,7 +7,41 @@ module Pingfacts
   class Error < StandardError; end
 
   class PingerResult
+    @@strictmode = false
+
     attr_accessor :ip, :dnsname, :mac
+
+    def self.strictmode
+      @@strictmode
+    end
+
+    def self.strictmode=(new_value)
+      @@strictmode = new_value
+    end
+
+    def eql?(other)
+      if @@strictmode
+        return (self.ip == other.ip and self.mac == other.mac and self.dnsname == other.dnsname)
+      end
+      result = false
+      if self.mac != nil and other.mac != nil
+        if self.mac == other.mac
+          result = true
+        end
+      end
+      if self.dnsname != nil and other.dnsname != nil
+        if self.dnsname == other.dnsname
+          return true
+        end
+      end
+      if self.ip != nil and other.ip != nil
+        if self.ip == other.ip
+          result = true
+        end
+      end
+
+      return result
+    end
   end
 
   def self.scan(network_args, method=Net::Ping::External)

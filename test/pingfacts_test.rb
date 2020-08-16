@@ -18,4 +18,32 @@ class PingfactsTest < Minitest::Test
       assert_equal r.class, ::Pingfacts::PingerResult
     end
   end
+
+  def test_better_compare_pingerresult
+    a = ::Pingfacts::PingerResult.new
+    a.ip = "192.168.178.1"
+    a.dnsname = "Fritzbox"
+    a.mac = "00:11:22:33:44:55"
+    b = ::Pingfacts::PingerResult.new
+    b.ip = "192.168.0.1"
+    b.mac = a.mac
+    c = ::Pingfacts::PingerResult.new
+    c.ip = "10.0.0.1"
+    c.dnsname = a.dnsname
+    d = ::Pingfacts::PingerResult.new
+    d.ip = a.ip
+    d.mac = a.mac
+    d.dnsname = a.dnsname
+
+    assert_equal ([a] - [b]).length, 0
+    assert_equal ([a] - [c]).length, 0
+    assert_equal ([a] - [d]).length, 0
+    assert_equal ([b] - [c]).length, 1
+
+    a.class.strictmode = true
+    assert_equal ([a] - [b]).length, 1
+    assert_equal ([a] - [c]).length, 1
+    assert_equal ([b] - [c]).length, 1
+    assert_equal ([a] - [d]).length, 0
+  end
 end
