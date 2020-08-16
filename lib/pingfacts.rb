@@ -10,26 +10,35 @@ module Pingfacts
     attr_accessor :ip, :dnsname, :mac
   end
 
-  def self.scan(network, method=Net::Ping::External)
+  def self.scan(network_args, method=Net::Ping::External)
+    network_list = []
     pingers = []
     onlines = []
 
-    begin
-      ip_range = IPAddr.new(network).to_range
+    if network_args.class == Array
+      network_list += network_args
+    else
+      network_list << network_args
+    end
 
-      ip_range.each do |ip|
-        pingers << Thread.new do
-          pinger = Net::Ping::External.new(ip.to_s)
-          if pinger.ping?
-            onlines << ip.to_s
+    network_list.each do |network|
+      begin
+        ip_range = IPAddr.new(network).to_range
+
+        ip_range.each do |ip|
+          pingers << Thread.new do
+            pinger = Net::Ping::External.new(ip.to_s)
+            if pinger.ping?
+              onlines << ip.to_s
+            end
           end
         end
-      end
-    rescue IPAddr::InvalidAddressError
-      pingers << Thread.new do
-        pinger = Net::Ping::External.new(network)
-        if pinger.ping?
-          onlines << network
+      rescue IPAddr::InvalidAddressError
+        pingers << Thread.new do
+          pinger = Net::Ping::External.new(network)
+          if pinger.ping?
+            onlines << network
+          end
         end
       end
     end

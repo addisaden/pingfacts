@@ -10,4 +10,12 @@ class PingfactsTest < Minitest::Test
     assert_equal result.length, 1
     assert_equal result.first.class, ::Pingfacts::PingerResult
   end
+
+  def test_it_handles_array
+    result = ::Pingfacts.scan(["8.8.8.8", "8.8.4.4"])
+    assert_equal result.length, 2
+    result.each do |r|
+      assert_equal r.class, ::Pingfacts::PingerResult
+    end
+  end
 end
