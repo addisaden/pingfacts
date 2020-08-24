@@ -10,7 +10,11 @@ module Pingfacts
 
   class PingerResult
     @@strictmode = false
-    @@configs = "#{Etc.getpwuid.dir}/.pingfacts"
+    begin
+      @@configs = "#{Etc.getpwuid.dir}/.pingfacts"
+    rescue NoMethodError
+      @@configs = "#{File.expand_path('~')}/.pingfacts"
+    end
     @@vendors = nil
 
     attr_accessor :ip, :dnsname, :mac
