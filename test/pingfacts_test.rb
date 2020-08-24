@@ -46,4 +46,27 @@ class PingfactsTest < Minitest::Test
     assert_equal ([b] - [c]).length, 1
     assert_equal ([a] - [d]).length, 0
   end
+
+  def test_get_vendor
+    empty = ::Pingfacts::PingerResult.new
+    assert_nil empty.vendor
+
+    motorola = ::Pingfacts::PingerResult.new
+    motorola.ip = "192.168.178.11"
+    motorola.dnsname = "moto.fritz.box"
+    motorola.mac = "24:46:c8:00:00:00"
+    assert (/motorola/i).match(motorola.vendor)
+
+    huawei = ::Pingfacts::PingerResult.new
+    huawei.ip = "192.168.178.12"
+    huawei.dnsname = "hua.fritz.box"
+    huawei.mac = "44:d7:91:00:00:00"
+    assert (/huawei/i).match(huawei.vendor)
+
+    fritzbox = ::Pingfacts::PingerResult.new
+    fritzbox.ip = "192.168.178.1"
+    fritzbox.dnsname = "fritz.box"
+    fritzbox.mac = "98:9b:CB:00:00:00"
+    assert (/avm/i).match(fritzbox.vendor)
+  end
 end

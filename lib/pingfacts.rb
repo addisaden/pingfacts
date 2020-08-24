@@ -1,4 +1,6 @@
 require "pingfacts/version"
+require "open-uri"
+require "etc"
 require "ipaddr"
 require "resolv"
 require "net/ping"
@@ -8,6 +10,8 @@ module Pingfacts
 
   class PingerResult
     @@strictmode = false
+    @@configs = "#{Etc.getpwuid.dir}/.pingfacts"
+    @@vendors = nil
 
     attr_accessor :ip, :dnsname, :mac
 
@@ -17,6 +21,52 @@ module Pingfacts
 
     def self.strictmode=(new_value)
       @@strictmode = new_value
+    end
+
+    def self.configs
+      @@configs
+    end
+
+    def self.configs=(new_value)
+      @@configs = new_value
+    end
+
+    def path_vendorlist
+      "#{@@configs}/vendorlist"
+    end
+
+    def prepare_configs
+      begin
+        Dir.mkdir(@@configs)
+      rescue Errno::EEXIST
+      end
+
+      vendor_content = nil
+
+      unless File.exist? path_vendorlist
+        vendor_content = URI.open("http://standards-oui.ieee.org/oui/oui.txt").read
+        open(path_vendorlist, "w") do |file|
+          file << vendor_content
+        end
+      else
+        if @@vendors.nil?
+          open(path_vendorlist, "r") do |file|
+            vendor_content = file.read
+          end
+        end
+      end
+
+      if @@vendors.nil? and (not vendor_content.nil?)
+        @@vendors = {}
+        vendor_content.lines.each do |line|
+          if (/\(base\s+16\)/i).match(line)
+            result = (/^([0-9A-F]+)\s+\(base\s+16\)\s+(.+)$/i).match(line)
+            unless result.nil?
+              @@vendors[result[1]] = result[2]
+            end
+          end
+        end
+      end
     end
 
     def eql?(other)
@@ -41,6 +91,19 @@ module Pingfacts
       end
 
       return result
+    end
+
+    def vendor
+      if self.mac.nil?
+        return nil
+      end
+      self.prepare_configs
+      teststring = self.mac.upcase.gsub /[^0-9A-F]*/i, ""
+      result = @@vendors[teststring[0,6]]
+      if result.nil?
+        return nil
+      end
+      return result.strip
     end
   end
 
